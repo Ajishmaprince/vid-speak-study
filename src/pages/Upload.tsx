@@ -4,7 +4,6 @@ import { Card } from "@/components/ui/card";
 import { Upload as UploadIcon, FileText, Loader2, Volume2, VolumeX, Video, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Navigation } from "@/components/Navigation";
 import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 
 interface SummaryResult {
@@ -134,8 +133,7 @@ const Upload = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pt-20">
-      <Navigation />
+    <div className="min-h-screen bg-background pl-64">
       <div className="max-w-4xl mx-auto p-4">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground">Upload & Summarize Notes</h1>

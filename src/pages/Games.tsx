@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Navigation } from "@/components/Navigation";
 import { Trophy, Star, Award, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import quizImage from "@/assets/quiz-feature.png";
@@ -92,8 +91,7 @@ const Games = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pt-20">
-      <Navigation />
+    <div className="min-h-screen bg-background pl-64">
       <div className="max-w-4xl mx-auto p-4">
         <div className="mb-6 text-center">
           <img src={quizImage} alt="Quiz Games" className="w-32 h-32 mx-auto mb-4 animate-scale-in" />
