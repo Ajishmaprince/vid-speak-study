@@ -1,130 +1,109 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Brain, MessageSquare, Upload, Video, Mic, Volume2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-
+import { Brain, MessageSquare, FileText, Trophy, Mic } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
+import heroImage from "@/assets/hero-study.png";
+import chatFeature from "@/assets/chat-feature.png";
+import notesFeature from "@/assets/notes-feature.png";
+import quizFeature from "@/assets/quiz-feature.png";
 
 const Index = () => {
-  const navigate = useNavigate();
-
-  const features = [
-    {
-      icon: <MessageSquare className="w-8 h-8" />,
-      title: "AI Chat Assistant",
-      description: "Get instant answers to your study questions with our intelligent chatbot"
-    },
-    {
-      icon: <Mic className="w-8 h-8" />,
-      title: "Voice Input",
-      description: "Ask questions by speaking - our AI understands your voice"
-    },
-    {
-      icon: <Volume2 className="w-8 h-8" />,
-      title: "Audio Explanations",
-      description: "Listen to AI-generated explanations with natural text-to-speech"
-    },
-    {
-      icon: <Video className="w-8 h-8" />,
-      title: "Video Learning",
-      description: "Watch related educational videos for visual understanding"
-    },
-    {
-      icon: <Upload className="w-8 h-8" />,
-      title: "Smart Summaries",
-      description: "Upload notes and get AI-powered summaries instantly"
-    },
-    {
-      icon: <Brain className="w-8 h-8" />,
-      title: "Personalized Dashboard",
-      description: "Track your learning progress and access past conversations"
-    }
-  ];
-
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <Navigation />
+      
       {/* Hero Section */}
-      <section className="relative overflow-hidden gradient-hero py-20 px-6 mt-16">
-        <div className="max-w-6xl mx-auto text-center">
-          <div className="animate-float mb-8 inline-block">
-            <Brain className="w-20 h-20 text-white" />
+      <div className="text-center py-12 px-4 pt-24">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 items-center">
+          <div className="text-left">
+            <div className="inline-block mb-6 px-4 py-2 bg-primary/10 rounded-full animate-fade-in">
+              <span className="text-primary font-medium">AI-Powered Learning Assistant</span>
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent animate-fade-in">
+              Your AI Study Partner
+            </h1>
+            <p className="text-xl text-muted-foreground mb-8">
+              Get instant help with your studies through AI chat, voice interaction, smart note summaries, and interactive games
+            </p>
+            <div className="flex gap-4 flex-wrap">
+              <Link to="/chat">
+                <Button size="lg" className="gap-2 hover-scale">
+                  <MessageSquare className="w-5 h-5" />
+                  Start Learning Now
+                </Button>
+              </Link>
+              <Link to="/upload">
+                <Button size="lg" variant="outline" className="gap-2 hover-scale">
+                  <FileText className="w-5 h-5" />
+                  Upload Notes
+                </Button>
+              </Link>
+            </div>
           </div>
-          <h1 className="text-5xl md:text-6xl lg:text-7xl text-white mb-6">
-            Your AI Study Partner
-          </h1>
-          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
-            Learn smarter with AI-powered chat, voice interactions, and video explanations
-          </p>
-          <Button
-            size="lg"
-            variant="secondary"
-            className="text-lg px-8 py-6 shadow-glow hover:scale-105 transition-transform"
-            onClick={() => navigate("/chat")}
-          >
-            Start Learning Now
-          </Button>
+          <div className="animate-scale-in">
+            <img src={heroImage} alt="AI Study Assistant" className="rounded-2xl shadow-glow" />
+          </div>
         </div>
-        
-        {/* Decorative elements */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '0s' }} />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-300/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
-      </section>
+      </div>
 
-      {/* Features Section */}
-      <section className="py-20 px-6 bg-background">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl md:text-5xl text-center mb-4 text-foreground">
-            Everything You Need to Succeed
-          </h2>
-          <p className="text-center text-muted-foreground mb-12 text-lg">
-            Powerful AI tools designed for modern learners
-          </p>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <Card
-                key={index}
-                className="p-6 gradient-card shadow-card hover:shadow-glow transition-all duration-300 hover:scale-105 border-border"
-              >
-                <div className="text-primary mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-bold mb-2 text-card-foreground">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Features */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto px-4 py-12">
+        <Link to="/chat">
+          <Card className="p-6 gradient-card shadow-card hover-scale cursor-pointer h-full transition-all">
+            <div className="mb-4 overflow-hidden rounded-lg">
+              <img src={chatFeature} alt="AI Chat" className="w-full h-32 object-cover" />
+            </div>
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <Brain className="w-6 h-6 text-primary" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">AI Chat Assistant</h3>
+            <p className="text-muted-foreground">
+              Ask questions and get instant AI-powered explanations with voice support
+            </p>
+          </Card>
+        </Link>
 
-      {/* CTA Section */}
-      <section className="py-20 px-6 gradient-hero">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl text-white mb-6">
-            Ready to Transform Your Learning?
-          </h2>
-          <p className="text-xl text-white/90 mb-8">
-            Join thousands of students already learning smarter
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              variant="secondary"
-              className="text-lg px-8 py-6"
-              onClick={() => navigate("/chat")}
-            >
-              Start Chatting
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-lg px-8 py-6 border-white text-white hover:bg-white/10"
-              onClick={() => navigate("/upload")}
-            >
-              Upload Notes
-            </Button>
+        <Link to="/upload">
+          <Card className="p-6 gradient-card shadow-card hover-scale cursor-pointer h-full transition-all">
+            <div className="mb-4 overflow-hidden rounded-lg">
+              <img src={notesFeature} alt="Smart Notes" className="w-full h-32 object-cover" />
+            </div>
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <FileText className="w-6 h-6 text-primary" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">Smart Summaries</h3>
+            <p className="text-muted-foreground">
+              Upload PDF, PPT, or text files and get AI summaries with video tutorials
+            </p>
+          </Card>
+        </Link>
+
+        <Link to="/games">
+          <Card className="p-6 gradient-card shadow-card hover-scale cursor-pointer h-full transition-all">
+            <div className="mb-4 overflow-hidden rounded-lg">
+              <img src={quizFeature} alt="Interactive Games" className="w-full h-32 object-cover" />
+            </div>
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <Trophy className="w-6 h-6 text-primary" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">Interactive Games</h3>
+            <p className="text-muted-foreground">
+              Play quizzes and puzzles to test your knowledge and earn rewards
+            </p>
+          </Card>
+        </Link>
+
+        <Card className="p-6 gradient-card shadow-card hover-scale cursor-pointer h-full transition-all">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <Mic className="w-6 h-6 text-primary" />
           </div>
-        </div>
-      </section>
+          <h3 className="text-xl font-bold mb-2">Voice Learning</h3>
+          <p className="text-muted-foreground">
+            Speak your questions and listen to AI responses - hands-free learning
+          </p>
+        </Card>
+      </div>
     </div>
   );
 };
