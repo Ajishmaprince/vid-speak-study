@@ -67,6 +67,33 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_completions: {
+        Row: {
+          completed_at: string
+          id: string
+          quiz_title: string
+          score: number | null
+          total_questions: number | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          quiz_title: string
+          score?: number | null
+          total_questions?: number | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          quiz_title?: string
+          score?: number | null
+          total_questions?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_groups: {
         Row: {
           created_at: string | null
@@ -94,12 +121,38 @@ export type Database = {
         }
         Relationships: []
       }
+      study_sessions: {
+        Row: {
+          duration_minutes: number
+          id: string
+          session_date: string
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          duration_minutes: number
+          id?: string
+          session_date?: string
+          subject: string
+          user_id: string
+        }
+        Update: {
+          duration_minutes?: number
+          id?: string
+          session_date?: string
+          subject?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_tasks: {
         Row: {
           completed: boolean | null
           created_at: string | null
           due_date: string
+          due_time: string | null
           id: string
+          notification_sent: boolean | null
           subject: string
           title: string
           user_id: string
@@ -108,7 +161,9 @@ export type Database = {
           completed?: boolean | null
           created_at?: string | null
           due_date: string
+          due_time?: string | null
           id?: string
+          notification_sent?: boolean | null
           subject: string
           title: string
           user_id: string
@@ -117,8 +172,37 @@ export type Database = {
           completed?: boolean | null
           created_at?: string | null
           due_date?: string
+          due_time?: string | null
           id?: string
+          notification_sent?: boolean | null
           subject?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_notes: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          subject: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          subject?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          subject?: string | null
           title?: string
           user_id?: string
         }

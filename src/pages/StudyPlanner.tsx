@@ -12,6 +12,7 @@ interface Task {
   id: string;
   title: string;
   due_date: string;
+  due_time?: string | null;
   subject: string;
   completed: boolean;
 }
@@ -20,11 +21,19 @@ const StudyPlanner = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState("");
   const [newDate, setNewDate] = useState("");
+  const [newTime, setNewTime] = useState("");
   const [newSubject, setNewSubject] = useState("");
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -76,6 +85,7 @@ const StudyPlanner = () => {
       .insert([{
         title: newTask,
         due_date: newDate,
+        due_time: newTime || null,
         subject: newSubject,
         user_id: user.id,
       }])
@@ -92,8 +102,33 @@ const StudyPlanner = () => {
       setTasks([...tasks, data]);
       setNewTask("");
       setNewDate("");
+      setNewTime("");
       setNewSubject("");
+      
+      // Schedule notification if time is set
+      if (newTime && 'Notification' in window && Notification.permission === 'granted') {
+        scheduleNotification(data);
+      }
+      
       toast({ title: "Task Added!", description: "Your study task has been scheduled." });
+    }
+  };
+
+  const scheduleNotification = (task: Task) => {
+    const taskDateTime = new Date(`${task.due_date}T${task.due_time}`);
+    const now = new Date();
+    const timeUntilTask = taskDateTime.getTime() - now.getTime();
+    
+    // Notify 15 minutes before
+    const notificationTime = timeUntilTask - (15 * 60 * 1000);
+    
+    if (notificationTime > 0) {
+      setTimeout(() => {
+        new Notification('Study Reminder', {
+          body: `Your study task "${task.title}" for ${task.subject} is starting in 15 minutes!`,
+          icon: '/favicon.ico'
+        });
+      }, notificationTime);
     }
   };
 
@@ -144,7 +179,7 @@ const StudyPlanner = () => {
 
         <Card className="p-6 gradient-card shadow-card mb-6">
           <h2 className="text-2xl font-bold mb-4">Add New Task</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <Input
               placeholder="Task title..."
               value={newTask}
@@ -159,6 +194,12 @@ const StudyPlanner = () => {
               type="date"
               value={newDate}
               onChange={(e) => setNewDate(e.target.value)}
+            />
+            <Input
+              type="time"
+              value={newTime}
+              onChange={(e) => setNewTime(e.target.value)}
+              placeholder="Time (optional)"
             />
           </div>
           <Button onClick={addTask} className="gap-2">
@@ -191,7 +232,10 @@ const StudyPlanner = () => {
                     <h3 className={`font-bold ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
                       {task.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground">{task.subject} • {task.due_date}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {task.subject} • {task.due_date}
+                      {task.due_time && ` at ${task.due_time}`}
+                    </p>
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => deleteTask(task.id)}>
                     <Trash2 className="w-4 h-4 text-destructive" />

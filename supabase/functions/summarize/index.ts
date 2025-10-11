@@ -22,12 +22,18 @@ serve(async (req) => {
       throw new Error('No text provided for summarization');
     }
 
-    // Extract keywords for video search
+    // Extract keywords for video search and tutorials
     const extractKeywords = (content: string): string[] => {
+      const commonWords = new Set([
+        'the', 'is', 'at', 'which', 'on', 'a', 'an', 'and', 'or', 'but', 'in', 'with', 'to', 'for',
+        'of', 'as', 'by', 'from', 'that', 'this', 'it', 'be', 'are', 'was', 'were', 'been', 'have',
+        'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should', 'could', 'may', 'might', 'can'
+      ]);
+
       const words = content.toLowerCase()
         .replace(/[^\w\s]/g, '')
         .split(/\s+/)
-        .filter(word => word.length > 4);
+        .filter(word => word.length > 3 && !commonWords.has(word));
       
       const wordFreq: { [key: string]: number } = {};
       words.forEach(word => {
@@ -36,8 +42,8 @@ serve(async (req) => {
       
       return Object.entries(wordFreq)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 3)
-        .map(([word]) => word);
+        .slice(0, 5)
+        .map(([word]) => word.charAt(0).toUpperCase() + word.slice(1));
     };
 
     const keywords = extractKeywords(text);
@@ -72,22 +78,40 @@ serve(async (req) => {
     const data = await response.json();
     const summary = data.choices[0].message.content;
 
-    // Generate video queries based on content
-    const videoQueries = keywords.slice(0, 2).map(keyword => 
-      `${keyword} tutorial explanation`
-    );
-
-    // Generate tutorial suggestions
-    const tutorials = keywords.map(keyword => ({
-      title: `Learn more about ${keyword}`,
-      url: `https://www.google.com/search?q=${encodeURIComponent(keyword + ' tutorial')}`
+    // Generate video queries with real YouTube links
+    const videoQueries = keywords.slice(0, 3).map(keyword => ({
+      title: `Learn ${keyword}`,
+      url: `https://www.youtube.com/results?search_query=${encodeURIComponent(keyword + ' tutorial explanation')}`
     }));
+
+    // Generate tutorial links from popular educational platforms
+    const tutorials = keywords.slice(0, 3).map(keyword => {
+      const encodedKeyword = encodeURIComponent(keyword);
+      return [
+        {
+          title: `${keyword} - GeeksforGeeks`,
+          url: `https://www.geeksforgeeks.org/${keyword.toLowerCase().replace(/\s+/g, '-')}/`
+        },
+        {
+          title: `${keyword} - TutorialsPoint`,
+          url: `https://www.tutorialspoint.com/${keyword.toLowerCase().replace(/\s+/g, '_')}/index.htm`
+        },
+        {
+          title: `${keyword} - W3Schools`,
+          url: `https://www.w3schools.com/${keyword.toLowerCase().replace(/\s+/g, '')}/`
+        },
+        {
+          title: `${keyword} - MDN Web Docs`,
+          url: `https://developer.mozilla.org/en-US/search?q=${encodedKeyword}`
+        }
+      ];
+    }).flat().slice(0, 6);
 
     return new Response(
       JSON.stringify({ 
         summary,
         videos: videoQueries,
-        tutorials: tutorials.slice(0, 3)
+        tutorials
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

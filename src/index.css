@@ -8,95 +8,101 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 210 100% 97%;
-    --foreground: 220 90% 10%;
+    --background: 220 17% 97%;
+    --foreground: 220 40% 5%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 90% 10%;
+    --card-foreground: 220 40% 5%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 90% 10%;
+    --popover-foreground: 220 40% 5%;
 
-    --primary: 221 83% 53%;
+    --primary: 262 80% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 262 83% 58%;
+    --secondary: 280 70% 55%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 45%;
 
-    --accent: 262 83% 58%;
+    --accent: 340 80% 55%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 53%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 262 80% 50%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    --gradient-hero: linear-gradient(135deg, hsl(221 83% 53%), hsl(262 83% 58%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 40% 98%));
-    --shadow-glow: 0 8px 32px hsl(221 83% 53% / 0.15);
-    --shadow-card: 0 4px 20px hsl(220 90% 10% / 0.08);
+    --gradient-hero: linear-gradient(135deg, hsl(262 80% 50%), hsl(280 70% 55%), hsl(340 80% 55%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(220 17% 99%));
+    --gradient-mesh: radial-gradient(at 0% 0%, hsl(262 80% 50% / 0.2) 0px, transparent 50%),
+                     radial-gradient(at 100% 0%, hsl(340 80% 55% / 0.15) 0px, transparent 50%),
+                     radial-gradient(at 100% 100%, hsl(280 70% 55% / 0.2) 0px, transparent 50%);
+    --shadow-glow: 0 10px 40px hsl(262 80% 50% / 0.25);
+    --shadow-card: 0 8px 32px hsl(220 40% 5% / 0.08);
+    --shadow-intense: 0 20px 60px hsl(262 80% 50% / 0.35);
     
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5% 26%;
-    --sidebar-primary: 240 6% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 5% 96%;
-    --sidebar-accent-foreground: 240 6% 10%;
+    --sidebar-background: 220 17% 98%;
+    --sidebar-foreground: 220 40% 10%;
+    --sidebar-primary: 262 80% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 95%;
+    --sidebar-accent-foreground: 220 40% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 221 83% 53%;
+    --sidebar-ring: 262 80% 50%;
   }
 
   .dark {
-    --background: 220 25% 8%;
-    --foreground: 210 40% 98%;
+    --background: 220 30% 6%;
+    --foreground: 220 17% 98%;
 
-    --card: 220 23% 11%;
-    --card-foreground: 210 40% 98%;
+    --card: 220 28% 9%;
+    --card-foreground: 220 17% 98%;
 
-    --popover: 220 23% 11%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 220 28% 9%;
+    --popover-foreground: 220 17% 98%;
 
-    --primary: 280 85% 65%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 262 90% 65%;
+    --primary-foreground: 220 17% 98%;
 
-    --secondary: 200 80% 55%;
-    --secondary-foreground: 220 25% 8%;
+    --secondary: 280 80% 60%;
+    --secondary-foreground: 220 17% 98%;
 
-    --muted: 220 15% 20%;
+    --muted: 220 20% 15%;
     --muted-foreground: 220 10% 65%;
 
-    --accent: 320 75% 60%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 340 85% 60%;
+    --accent-foreground: 220 17% 98%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 18%;
-    --input: 220 15% 18%;
-    --ring: 280 85% 65%;
+    --border: 220 20% 18%;
+    --input: 220 20% 18%;
+    --ring: 262 90% 65%;
     
-    --gradient-hero: linear-gradient(135deg, hsl(280 85% 65%), hsl(320 75% 60%));
-    --gradient-card: linear-gradient(135deg, hsl(220 23% 13%), hsl(220 23% 9%));
-    --gradient-accent: linear-gradient(90deg, hsl(280 85% 65%), hsl(200 80% 55%), hsl(320 75% 60%));
-    --shadow-glow: 0 0 50px hsl(280 85% 65% / 0.4);
-    --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.5);
-    --shadow-accent: 0 4px 20px hsl(280 85% 65% / 0.3);
+    --gradient-hero: linear-gradient(135deg, hsl(262 90% 65%), hsl(280 80% 60%), hsl(340 85% 60%));
+    --gradient-card: linear-gradient(145deg, hsl(220 28% 11%), hsl(220 28% 8%));
+    --gradient-mesh: radial-gradient(at 0% 0%, hsl(262 90% 65% / 0.3) 0px, transparent 50%),
+                     radial-gradient(at 100% 0%, hsl(340 85% 60% / 0.2) 0px, transparent 50%),
+                     radial-gradient(at 100% 100%, hsl(280 80% 60% / 0.3) 0px, transparent 50%);
+    --shadow-glow: 0 0 60px hsl(262 90% 65% / 0.5);
+    --shadow-card: 0 12px 48px hsl(0 0% 0% / 0.6);
+    --shadow-intense: 0 20px 80px hsl(262 90% 65% / 0.6);
     
-    --sidebar-background: 220 25% 8%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 280 85% 65%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 220 23% 13%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 220 15% 18%;
-    --sidebar-ring: 280 85% 65%;
+    --sidebar-background: 220 30% 6%;
+    --sidebar-foreground: 220 17% 98%;
+    --sidebar-primary: 262 90% 65%;
+    --sidebar-primary-foreground: 220 17% 98%;
+    --sidebar-accent: 220 28% 11%;
+    --sidebar-accent-foreground: 220 17% 98%;
+    --sidebar-border: 220 20% 18%;
+    --sidebar-ring: 262 90% 65%;
   }
 }
 
@@ -121,6 +127,17 @@ All colors MUST be HSL.
   
   .gradient-card {
     background: var(--gradient-card);
+    position: relative;
+  }
+  
+  .gradient-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-mesh);
+    opacity: 0.4;
+    border-radius: inherit;
+    pointer-events: none;
   }
   
   .shadow-glow {
@@ -130,9 +147,21 @@ All colors MUST be HSL.
   .shadow-card {
     box-shadow: var(--shadow-card);
   }
+  
+  .shadow-intense {
+    box-shadow: var(--shadow-intense);
+  }
 
   .animate-float {
     animation: float 6s ease-in-out infinite;
+  }
+  
+  .animate-pulse-slow {
+    animation: pulse-slow 3s ease-in-out infinite;
+  }
+  
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
   }
 
   @keyframes float {
@@ -141,6 +170,24 @@ All colors MUST be HSL.
     }
     50% {
       transform: translateY(-20px);
+    }
+  }
+  
+  @keyframes pulse-slow {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+  
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
     }
   }
 }

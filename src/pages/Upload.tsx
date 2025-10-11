@@ -8,7 +8,7 @@ import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 
 interface SummaryResult {
   summary: string;
-  videos?: string[];
+  videos?: Array<{ title: string; url: string }>;
   tutorials?: Array<{ title: string; url: string }>;
 }
 
@@ -97,6 +97,17 @@ const Upload = () => {
     try {
       const text = await extractText(file);
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to save notes",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Call AI to summarize
       const { data, error } = await supabase.functions.invoke('summarize', {
         body: { text, filename: file.name }
@@ -105,9 +116,24 @@ const Upload = () => {
       if (error) throw error;
 
       setResult(data);
+
+      // Save to database
+      const { error: saveError } = await supabase
+        .from('user_notes')
+        .insert({
+          user_id: user.id,
+          title: file.name.replace(/\.[^/.]+$/, ''), // Remove extension
+          content: data.summary,
+          subject: 'General'
+        });
+
+      if (saveError) {
+        console.error('Error saving notes:', saveError);
+      }
+
       toast({
         title: "Success!",
-        description: "Your notes have been summarized with video tutorials."
+        description: "Your notes have been summarized and saved with video & tutorial recommendations."
       });
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -222,19 +248,24 @@ const Upload = () => {
                 <Card className="p-6 gradient-card shadow-card animate-fade-in">
                   <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                     <Video className="w-6 h-6 text-primary" />
-                    Video Tutorials
+                    YouTube Video Tutorials
                   </h3>
-                  <div className="grid gap-4">
-                    {result.videos.map((videoQuery, index) => (
-                      <Button
+                  <div className="grid gap-3">
+                    {result.videos.map((video, index) => (
+                      <a
                         key={index}
-                        variant="outline"
-                        className="justify-start"
-                        onClick={() => setShowVideo(videoQuery)}
+                        href={video.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-3 border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all flex items-center gap-2"
                       >
-                        <Video className="w-4 h-4 mr-2" />
-                        Watch: {videoQuery}
-                      </Button>
+                        <Video className="w-5 h-5 text-primary flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="font-medium">{video.title}</p>
+                          <p className="text-xs text-muted-foreground">Click to search on YouTube</p>
+                        </div>
+                        <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                      </a>
                     ))}
                   </div>
                 </Card>
@@ -245,19 +276,22 @@ const Upload = () => {
                 <Card className="p-6 gradient-card shadow-card animate-fade-in">
                   <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                     <ExternalLink className="w-6 h-6 text-primary" />
-                    Recommended Tutorials
+                    Online Learning Resources
                   </h3>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {result.tutorials.map((tutorial, index) => (
                       <a
                         key={index}
                         href={tutorial.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block p-3 border rounded-lg hover:bg-primary/5 transition-colors"
+                        className="block p-4 border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all group"
                       >
-                        <p className="font-medium story-link">{tutorial.title}</p>
-                        <p className="text-sm text-muted-foreground">{tutorial.url}</p>
+                        <div className="flex items-center justify-between">
+                          <p className="font-medium group-hover:text-primary transition-colors">{tutorial.title}</p>
+                          <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 truncate">{tutorial.url}</p>
                       </a>
                     ))}
                   </div>
