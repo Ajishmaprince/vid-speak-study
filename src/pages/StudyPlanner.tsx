@@ -1,30 +1,95 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar, Plus, Trash2 } from "lucide-react";
+import { Calendar, Plus, Trash2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Task {
-  id: number;
+  id: string;
   title: string;
-  date: string;
+  due_date: string;
   subject: string;
+  completed: boolean;
 }
 
 const StudyPlanner = () => {
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: 1, title: "Complete Math Assignment", date: "2025-10-15", subject: "Mathematics" },
-    { id: 2, title: "Review Biology Notes", date: "2025-10-12", subject: "Biology" },
-  ]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState("");
   const [newDate, setNewDate] = useState("");
   const [newSubject, setNewSubject] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const addTask = () => {
-    if (newTask && newDate && newSubject) {
-      setTasks([...tasks, { id: Date.now(), title: newTask, date: newDate, subject: newSubject }]);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        navigate("/auth");
+      } else {
+        setUser(session.user);
+        fetchTasks(session.user.id);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) {
+        navigate("/auth");
+      } else {
+        setUser(session.user);
+        fetchTasks(session.user.id);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const fetchTasks = async (userId: string) => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('study_tasks')
+      .select('*')
+      .eq('user_id', userId)
+      .order('due_date', { ascending: true });
+
+    if (error) {
+      toast({
+        title: "Error loading tasks",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      setTasks(data || []);
+    }
+    setLoading(false);
+  };
+
+  const addTask = async () => {
+    if (!newTask || !newDate || !newSubject || !user) return;
+
+    const { data, error } = await supabase
+      .from('study_tasks')
+      .insert([{
+        title: newTask,
+        due_date: newDate,
+        subject: newSubject,
+        user_id: user.id,
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      toast({
+        title: "Error adding task",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      setTasks([...tasks, data]);
       setNewTask("");
       setNewDate("");
       setNewSubject("");
@@ -32,9 +97,41 @@ const StudyPlanner = () => {
     }
   };
 
-  const deleteTask = (id: number) => {
-    setTasks(tasks.filter(task => task.id !== id));
-    toast({ title: "Task Removed", variant: "destructive" });
+  const toggleTask = async (id: string, completed: boolean) => {
+    const { error } = await supabase
+      .from('study_tasks')
+      .update({ completed: !completed })
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Error updating task",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      setTasks(tasks.map(task => 
+        task.id === id ? { ...task, completed: !completed } : task
+      ));
+    }
+  };
+
+  const deleteTask = async (id: string) => {
+    const { error } = await supabase
+      .from('study_tasks')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Error deleting task",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      setTasks(tasks.filter(task => task.id !== id));
+      toast({ title: "Task Removed" });
+    }
   };
 
   return (
@@ -72,22 +169,37 @@ const StudyPlanner = () => {
 
         <Card className="p-6 gradient-card shadow-card">
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Calendar className="w-6 h-6" />
-            Upcoming Tasks
+            <Calendar className="w-6 h-6 text-primary" />
+            Your Tasks
           </h2>
-          <div className="space-y-3">
-            {tasks.map((task) => (
-              <div key={task.id} className="flex items-center justify-between p-4 bg-card/50 rounded-lg border">
-                <div>
-                  <h3 className="font-bold">{task.title}</h3>
-                  <p className="text-sm text-muted-foreground">{task.subject} • {task.date}</p>
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : tasks.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">No tasks yet. Add your first task above!</p>
+          ) : (
+            <div className="space-y-3">
+              {tasks.map((task) => (
+                <div key={task.id} className="flex items-center gap-3 p-4 bg-card/50 rounded-lg border border-border hover:border-primary/50 transition-colors">
+                  <Checkbox
+                    checked={task.completed}
+                    onCheckedChange={() => toggleTask(task.id, task.completed)}
+                    className="border-primary"
+                  />
+                  <div className="flex-1">
+                    <h3 className={`font-bold ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
+                      {task.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">{task.subject} • {task.due_date}</p>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => deleteTask(task.id)}>
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => deleteTask(task.id)}>
-                  <Trash2 className="w-4 h-4 text-destructive" />
-                </Button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </Card>
       </div>
     </div>
