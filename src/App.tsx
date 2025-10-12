@@ -3,7 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { Header } from "@/components/Header";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Chat from "./pages/Chat";
@@ -19,6 +21,18 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const AppLayout = ({ children }: { children: React.ReactNode }) => (
+  <SidebarProvider defaultOpen={false}>
+    <div className="flex min-h-screen w-full">
+      <AppSidebar />
+      <div className="flex-1">
+        <Header />
+        <main className="w-full">{children}</main>
+      </div>
+    </div>
+  </SidebarProvider>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -27,16 +41,16 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<><AppSidebar /><Dashboard /></>} />
-          <Route path="/chat" element={<><AppSidebar /><Chat /></>} />
-          <Route path="/planner" element={<><AppSidebar /><StudyPlanner /></>} />
-          <Route path="/notes-generator" element={<><AppSidebar /><NotesGenerator /></>} />
-          <Route path="/upload" element={<><AppSidebar /><Upload /></>} />
-          <Route path="/qa-generator" element={<><AppSidebar /><QAGenerator /></>} />
-          <Route path="/revision" element={<><AppSidebar /><RevisionKit /></>} />
-          <Route path="/visuals" element={<><AppSidebar /><VisualsGenerator /></>} />
-          <Route path="/games" element={<><AppSidebar /><Games /></>} />
-          <Route path="/study-club" element={<><AppSidebar /><StudyClub /></>} />
+          <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
+          <Route path="/chat" element={<AppLayout><Chat /></AppLayout>} />
+          <Route path="/planner" element={<AppLayout><StudyPlanner /></AppLayout>} />
+          <Route path="/notes-generator" element={<AppLayout><NotesGenerator /></AppLayout>} />
+          <Route path="/upload" element={<AppLayout><Upload /></AppLayout>} />
+          <Route path="/qa-generator" element={<AppLayout><QAGenerator /></AppLayout>} />
+          <Route path="/revision" element={<AppLayout><RevisionKit /></AppLayout>} />
+          <Route path="/visuals" element={<AppLayout><VisualsGenerator /></AppLayout>} />
+          <Route path="/games" element={<AppLayout><Games /></AppLayout>} />
+          <Route path="/study-club" element={<AppLayout><StudyClub /></AppLayout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

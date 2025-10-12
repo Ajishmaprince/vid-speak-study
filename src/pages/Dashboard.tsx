@@ -156,27 +156,36 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background pl-64">
-      <div className="p-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            Dashboard
-          </h1>
-          <p className="text-muted-foreground">
-            Welcome back{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ''}! Here's your learning overview
-          </p>
+    <div className="min-h-screen bg-background pt-16">
+      <div className="p-4 md:p-8 animate-fade-in">
+        <div className="mb-8 relative">
+          <div className="absolute -top-4 -left-4 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-4 -right-4 w-72 h-72 bg-accent/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+          <div className="relative z-10">
+            <h1 className="text-5xl md:text-6xl font-bold mb-3 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-fade-in">
+              Dashboard
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              Welcome back{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ''}! Here's your learning overview 🚀
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {statsDisplay.map((stat) => (
-            <Card key={stat.label} className="p-6 gradient-card shadow-glow border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:scale-105">
+          {statsDisplay.map((stat, index) => (
+            <Card 
+              key={stat.label} 
+              className="p-6 gradient-card shadow-glow border-2 border-primary/20 hover:border-primary/40 transition-all duration-500 hover:scale-110 group cursor-pointer overflow-hidden relative animate-fade-in"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="flex items-center justify-between relative z-10">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1 font-medium">{stat.label}</p>
-                  <p className="text-4xl font-bold bg-gradient-to-br from-primary via-secondary to-accent bg-clip-text text-transparent">{stat.value}</p>
+                  <p className="text-sm text-muted-foreground mb-2 font-medium uppercase tracking-wide">{stat.label}</p>
+                  <p className="text-5xl font-bold bg-gradient-to-br from-primary via-secondary to-accent bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300">{stat.value}</p>
                 </div>
-                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center`}>
-                  <stat.icon className={`w-8 h-8 ${stat.color}`} />
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center shadow-glow group-hover:rotate-12 transition-transform duration-300">
+                  <stat.icon className={`w-10 h-10 ${stat.color} group-hover:scale-125 transition-transform duration-300`} />
                 </div>
               </div>
             </Card>
@@ -184,36 +193,57 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <Card className="p-6 gradient-card shadow-card">
-            <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
-            <div className="space-y-3">
-              <Button onClick={() => navigate("/chat")} className="w-full justify-start" variant="outline">
-                <BookOpen className="w-5 h-5 mr-2" />
+          <Card className="p-8 gradient-card shadow-glow border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 animate-fade-in group">
+            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Quick Actions</h2>
+            <div className="space-y-4">
+              <Button 
+                onClick={() => navigate("/chat")} 
+                className="w-full justify-start h-14 text-lg group/btn hover:scale-105 transition-all shadow-card" 
+                variant="outline"
+              >
+                <BookOpen className="w-6 h-6 mr-3 group-hover/btn:rotate-12 transition-transform" />
                 Start AI Chat Session
               </Button>
-              <Button onClick={() => navigate("/upload")} className="w-full justify-start" variant="outline">
-                <BookOpen className="w-5 h-5 mr-2" />
+              <Button 
+                onClick={() => navigate("/upload")} 
+                className="w-full justify-start h-14 text-lg group/btn hover:scale-105 transition-all shadow-card" 
+                variant="outline"
+              >
+                <BookOpen className="w-6 h-6 mr-3 group-hover/btn:rotate-12 transition-transform" />
                 Upload & Summarize Notes
               </Button>
-              <Button onClick={() => navigate("/games")} className="w-full justify-start" variant="outline">
-                <Trophy className="w-5 h-5 mr-2" />
+              <Button 
+                onClick={() => navigate("/games")} 
+                className="w-full justify-start h-14 text-lg group/btn hover:scale-105 transition-all shadow-card" 
+                variant="outline"
+              >
+                <Trophy className="w-6 h-6 mr-3 group-hover/btn:rotate-12 transition-transform" />
                 Take a Quiz
               </Button>
             </div>
           </Card>
 
-          <Card className="p-6 gradient-card shadow-glow border-2 border-primary/20">
-            <h2 className="text-2xl font-bold mb-4 relative z-10">Recent Activity</h2>
+          <Card className="p-8 gradient-card shadow-glow border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 animate-fade-in overflow-hidden relative group">
+            <div className="absolute -right-8 -top-8 w-32 h-32 bg-primary/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+            <h2 className="text-3xl font-bold mb-6 relative z-10 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Recent Activity</h2>
             <div className="space-y-4 relative z-10">
               {recentActivity.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No recent activity yet. Start studying to see your progress!</p>
+                <div className="text-center py-12 animate-pulse">
+                  <Trophy className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+                  <p className="text-muted-foreground">No recent activity yet. Start studying to see your progress!</p>
+                </div>
               ) : (
                 recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-center justify-between py-3 px-4 rounded-lg bg-card/50 border border-border/50 hover:border-primary/50 transition-all">
+                  <div 
+                    key={index} 
+                    className="flex items-center justify-between py-4 px-5 rounded-xl bg-card/50 border border-border/50 hover:border-primary/50 hover:bg-card/70 transition-all duration-300 hover:scale-105 cursor-pointer animate-fade-in"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
                     <div>
-                      <p className="font-semibold">{activity.title}</p>
-                      <p className="text-sm text-muted-foreground">{activity.time}</p>
+                      <p className="font-semibold text-lg">{activity.title}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{activity.time}</p>
                     </div>
+                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                   </div>
                 ))
               )}

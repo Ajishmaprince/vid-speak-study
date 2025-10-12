@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload } from "lucide-react";
+import studyRobot from "@/assets/study-robot.png";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -128,16 +129,38 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md p-8 gradient-card shadow-glow">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            StudyBuddy AI
-          </h1>
-          <p className="text-muted-foreground">
-            {isLogin ? "Welcome back!" : "Create your account"}
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+      <div className="absolute top-20 left-20 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-20 right-20 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+      
+      <div className="grid md:grid-cols-2 gap-8 max-w-6xl w-full relative z-10">
+        <div className="hidden md:flex flex-col items-center justify-center animate-fade-in">
+          <img 
+            src={studyRobot} 
+            alt="Study Robot" 
+            className="w-full max-w-md animate-scale-in hover:scale-110 transition-transform duration-500"
+          />
+          <h2 className="text-4xl font-bold mt-8 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+            Learn Smarter with AI
+          </h2>
+          <p className="text-muted-foreground text-center mt-4 text-lg">
+            Your personal AI study companion for better learning outcomes
           </p>
         </div>
+
+        <Card className="p-8 md:p-10 gradient-card shadow-glow border-2 border-primary/20 animate-fade-in backdrop-blur-xl">
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow animate-scale-in">
+              <span className="text-3xl font-bold text-primary-foreground">SB</span>
+            </div>
+            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+              StudyBuddy AI
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              {isLogin ? "Welcome back! Sign in to continue 👋" : "Create your account to get started 🚀"}
+            </p>
+          </div>
 
         <form onSubmit={handleAuth} className="space-y-6">
           {!isLogin && (
@@ -212,15 +235,16 @@ const Auth = () => {
           </Button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-8 text-center">
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-primary hover:text-primary/80 transition-colors"
+            className="text-primary hover:text-primary/80 font-medium transition-colors text-lg hover:scale-105 inline-block transition-transform"
           >
-            {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
+            {isLogin ? "Don't have an account? Sign up ✨" : "Already have an account? Sign in 👉"}
           </button>
         </div>
       </Card>
+      </div>
     </div>
   );
 };

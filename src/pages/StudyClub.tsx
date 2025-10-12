@@ -146,7 +146,7 @@ const StudyClub = () => {
   const totalMembers = groups.reduce((sum, group) => sum + (group.member_count || 0), 0);
 
   return (
-    <div className="min-h-screen bg-background pl-64">
+    <div className="min-h-screen bg-background pt-16">
       <div className="p-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">

@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Trophy, Star, Award, Sparkles } from "lucide-react";
+import { Trophy, Star, Award, Sparkles, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import quizImage from "@/assets/quiz-feature.png";
 
 interface Question {
@@ -41,13 +42,24 @@ const sampleQuestions: Question[] = [
 ];
 
 const Games = () => {
+  const [selectedTopic, setSelectedTopic] = useState<string>("");
+  const [quizStarted, setQuizStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [answered, setAnswered] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
+  const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user);
+    });
+  }, []);
+
+  const topics = ["Mathematics", "Science", "History", "Geography", "Literature", "General Knowledge"];
 
   const handleAnswer = (optionIndex: number) => {
     if (answered) return;
@@ -78,8 +90,29 @@ const Games = () => {
         setAnswered(false);
       } else {
         setShowResult(true);
+        saveQuizCompletion();
       }
     }, 1500);
+  };
+
+  const saveQuizCompletion = async () => {
+    if (!user) return;
+    
+    try {
+      await supabase.from('quiz_completions').insert({
+        user_id: user.id,
+        quiz_title: `${selectedTopic} Quiz`,
+        score: score + 1,
+        total_questions: sampleQuestions.length
+      });
+    } catch (error) {
+      console.error('Error saving quiz completion:', error);
+    }
+  };
+
+  const startQuiz = (topic: string) => {
+    setSelectedTopic(topic);
+    setQuizStarted(true);
   };
 
   const resetQuiz = () => {
@@ -88,29 +121,47 @@ const Games = () => {
     setShowResult(false);
     setSelectedAnswer(null);
     setAnswered(false);
+    setQuizStarted(false);
+    setSelectedTopic("");
   };
 
   return (
-    <div className="min-h-screen bg-background pl-64">
-      <div className="max-w-4xl mx-auto p-4">
-        <div className="mb-6 text-center">
+    <div className="min-h-screen bg-background pl-0 md:pl-0">
+      <div className="max-w-4xl mx-auto p-4 md:p-8">
+        <div className="mb-8 text-center">
           <img src={quizImage} alt="Quiz Games" className="w-32 h-32 mx-auto mb-4 animate-scale-in" />
-          <h1 className="text-3xl font-bold text-foreground">Interactive Learning Games</h1>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-2">Interactive Learning Games</h1>
           <p className="text-muted-foreground">Test your knowledge and earn rewards</p>
           
-          <div className="flex gap-4 justify-center mt-4">
-            <div className="flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full">
-              <Trophy className="w-5 h-5 text-primary" />
-              <span className="font-bold">{totalPoints} Points</span>
+          {quizStarted && (
+            <div className="flex gap-4 justify-center mt-4">
+              <div className="flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full">
+                <Trophy className="w-5 h-5 text-primary" />
+                <span className="font-bold">{totalPoints} Points</span>
+              </div>
+              <div className="flex items-center gap-2 bg-accent/10 px-4 py-2 rounded-full">
+                <Star className="w-5 h-5 text-accent" />
+                <span className="font-bold">{score} Correct</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 bg-accent/10 px-4 py-2 rounded-full">
-              <Star className="w-5 h-5 text-accent" />
-              <span className="font-bold">{score} Correct</span>
-            </div>
-          </div>
+          )}
         </div>
 
-        {!showResult ? (
+        {!quizStarted ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
+            {topics.map((topic) => (
+              <Card 
+                key={topic}
+                className="p-6 gradient-card shadow-glow hover:scale-105 transition-all cursor-pointer border-2 border-primary/20 hover:border-primary/50"
+                onClick={() => startQuiz(topic)}
+              >
+                <BookOpen className="w-12 h-12 text-primary mb-4 mx-auto" />
+                <h3 className="text-xl font-bold text-center">{topic}</h3>
+                <p className="text-sm text-muted-foreground text-center mt-2">Start Quiz</p>
+              </Card>
+            ))}
+          </div>
+        ) : !showResult ? (
           <Card className="p-8 gradient-card shadow-card animate-fade-in">
             <div className="mb-6">
               <div className="flex justify-between items-center mb-4">
