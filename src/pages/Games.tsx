@@ -42,6 +42,7 @@ const sampleQuestions: Question[] = [
 ];
 
 const Games = () => {
+  const [customTopic, setCustomTopic] = useState<string>("");
   const [selectedTopic, setSelectedTopic] = useState<string>("");
   const [quizStarted, setQuizStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -58,8 +59,6 @@ const Games = () => {
       setUser(session?.user);
     });
   }, []);
-
-  const topics = ["Mathematics", "Science", "History", "Geography", "Literature", "General Knowledge"];
 
   const handleAnswer = (optionIndex: number) => {
     if (answered) return;
@@ -110,8 +109,16 @@ const Games = () => {
     }
   };
 
-  const startQuiz = (topic: string) => {
-    setSelectedTopic(topic);
+  const startQuiz = () => {
+    if (!customTopic.trim()) {
+      toast({
+        title: "Topic Required",
+        description: "Please enter a topic for the quiz",
+        variant: "destructive"
+      });
+      return;
+    }
+    setSelectedTopic(customTopic.trim());
     setQuizStarted(true);
   };
 
@@ -123,6 +130,7 @@ const Games = () => {
     setAnswered(false);
     setQuizStarted(false);
     setSelectedTopic("");
+    setCustomTopic("");
   };
 
   return (
@@ -148,19 +156,42 @@ const Games = () => {
         </div>
 
         {!quizStarted ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
-            {topics.map((topic) => (
-              <Card 
-                key={topic}
-                className="p-6 gradient-card shadow-glow hover:scale-105 transition-all cursor-pointer border-2 border-primary/20 hover:border-primary/50"
-                onClick={() => startQuiz(topic)}
+          <Card className="p-8 md:p-12 gradient-card shadow-glow border-2 border-primary/20 animate-fade-in max-w-2xl mx-auto">
+            <div className="text-center mb-8">
+              <BookOpen className="w-20 h-20 text-primary mb-6 mx-auto" />
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                Enter Your Quiz Topic
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Whether you're preparing for NEET, JEE, school exams, or college subjects - enter any topic to start your personalized quiz!
+              </p>
+            </div>
+            
+            <div className="space-y-6">
+              <div>
+                <Input
+                  type="text"
+                  placeholder="e.g., Organic Chemistry, Newton's Laws, World War II, Data Structures..."
+                  value={customTopic}
+                  onChange={(e) => setCustomTopic(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && startQuiz()}
+                  className="h-14 text-lg border-2 border-primary/30 focus:border-primary"
+                />
+                <p className="text-sm text-muted-foreground mt-3 text-center">
+                  💡 Examples: Physics for JEE, Human Anatomy for NEET, JavaScript for Web Dev, Linear Algebra
+                </p>
+              </div>
+              
+              <Button 
+                onClick={startQuiz} 
+                size="lg" 
+                className="w-full h-14 text-lg shadow-glow gap-2 group hover:scale-105 transition-all"
               >
-                <BookOpen className="w-12 h-12 text-primary mb-4 mx-auto" />
-                <h3 className="text-xl font-bold text-center">{topic}</h3>
-                <p className="text-sm text-muted-foreground text-center mt-2">Start Quiz</p>
-              </Card>
-            ))}
-          </div>
+                <Trophy className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                Start Quiz
+              </Button>
+            </div>
+          </Card>
         ) : !showResult ? (
           <Card className="p-8 gradient-card shadow-card animate-fade-in">
             <div className="mb-6">
