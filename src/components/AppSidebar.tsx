@@ -23,6 +23,7 @@ const menuItems = [
   { title: "Last Minute Revision Kit", icon: Clock, path: "/revision" },
   { title: "Visuals Generator", icon: Image, path: "/visuals" },
   { title: "Quiz Generator", icon: Trophy, path: "/games" },
+  { title: "Study Timer", icon: Clock, path: "/study-timer" },
   { title: "Study Club", icon: Users, path: "/study-club" },
 ];
 

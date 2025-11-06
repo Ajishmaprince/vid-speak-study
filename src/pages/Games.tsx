@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Trophy, Star, Award, Sparkles, BookOpen } from "lucide-react";
+import { Trophy, Star, Award, Sparkles, BookOpen, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import quizImage from "@/assets/quiz-feature.png";
@@ -10,36 +10,9 @@ import quizImage from "@/assets/quiz-feature.png";
 interface Question {
   question: string;
   options: string[];
-  correct: number;
+  correctAnswer: number;
   topic: string;
 }
-
-const sampleQuestions: Question[] = [
-  {
-    question: "What is the capital of France?",
-    options: ["London", "Berlin", "Paris", "Madrid"],
-    correct: 2,
-    topic: "Geography"
-  },
-  {
-    question: "What is 2 + 2?",
-    options: ["3", "4", "5", "6"],
-    correct: 1,
-    topic: "Mathematics"
-  },
-  {
-    question: "Who wrote Romeo and Juliet?",
-    options: ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"],
-    correct: 1,
-    topic: "Literature"
-  },
-  {
-    question: "What is the chemical symbol for water?",
-    options: ["O2", "H2O", "CO2", "NaCl"],
-    correct: 1,
-    topic: "Chemistry"
-  }
-];
 
 const Games = () => {
   const [customTopic, setCustomTopic] = useState<string>("");
@@ -52,6 +25,9 @@ const Games = () => {
   const [answered, setAnswered] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
   const [user, setUser] = useState<any>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -66,10 +42,11 @@ const Games = () => {
     setSelectedAnswer(optionIndex);
     setAnswered(true);
 
-    if (optionIndex === sampleQuestions[currentQuestion].correct) {
+    if (optionIndex === questions[currentQuestion].correctAnswer) {
       setScore(score + 1);
       const points = 10;
       setTotalPoints(totalPoints + points);
+      setCorrectAnswers(correctAnswers + 1);
       toast({
         title: "Correct! 🎉",
         description: `+${points} points`,
@@ -77,13 +54,13 @@ const Games = () => {
     } else {
       toast({
         title: "Wrong Answer",
-        description: "Keep trying!",
+        description: `Correct answer: ${questions[currentQuestion].options[questions[currentQuestion].correctAnswer]}`,
         variant: "destructive"
       });
     }
 
     setTimeout(() => {
-      if (currentQuestion < sampleQuestions.length - 1) {
+      if (currentQuestion < questions.length - 1) {
         setCurrentQuestion(currentQuestion + 1);
         setSelectedAnswer(null);
         setAnswered(false);
@@ -100,16 +77,16 @@ const Games = () => {
     try {
       await supabase.from('quiz_completions').insert({
         user_id: user.id,
-        quiz_title: `${selectedTopic} Quiz`,
-        score: score + 1,
-        total_questions: sampleQuestions.length
+        quiz_title: selectedTopic,
+        score: correctAnswers,
+        total_questions: questions.length
       });
     } catch (error) {
       console.error('Error saving quiz completion:', error);
     }
   };
 
-  const startQuiz = () => {
+  const startQuiz = async () => {
     if (!customTopic.trim()) {
       toast({
         title: "Topic Required",
@@ -118,8 +95,38 @@ const Games = () => {
       });
       return;
     }
-    setSelectedTopic(customTopic.trim());
-    setQuizStarted(true);
+
+    setIsGenerating(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-quiz', {
+        body: { topic: customTopic.trim(), numQuestions: 5 }
+      });
+
+      if (error) throw error;
+
+      if (!data.questions || data.questions.length === 0) {
+        throw new Error('No questions generated');
+      }
+
+      setQuestions(data.questions);
+      setSelectedTopic(customTopic.trim());
+      setQuizStarted(true);
+      
+      toast({
+        title: "Quiz Ready!",
+        description: `Generated ${data.questions.length} questions about ${customTopic}`,
+      });
+    } catch (error) {
+      console.error('Error generating quiz:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate quiz. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const resetQuiz = () => {
@@ -131,6 +138,9 @@ const Games = () => {
     setQuizStarted(false);
     setSelectedTopic("");
     setCustomTopic("");
+    setQuestions([]);
+    setTotalPoints(0);
+    setCorrectAnswers(0);
   };
 
   return (
@@ -186,9 +196,19 @@ const Games = () => {
                 onClick={startQuiz} 
                 size="lg" 
                 className="w-full h-14 text-lg shadow-glow gap-2 group hover:scale-105 transition-all"
+                disabled={isGenerating}
               >
-                <Trophy className="w-6 h-6 group-hover:rotate-12 transition-transform" />
-                Start Quiz
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                    Generating Quiz...
+                  </>
+                ) : (
+                  <>
+                    <Trophy className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                    Start Quiz
+                  </>
+                )}
               </Button>
             </div>
           </Card>
@@ -197,32 +217,32 @@ const Games = () => {
             <div className="mb-6">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-sm font-medium bg-primary/10 px-3 py-1 rounded-full">
-                  {sampleQuestions[currentQuestion].topic}
+                  {questions[currentQuestion].topic}
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  Question {currentQuestion + 1} of {sampleQuestions.length}
+                  Question {currentQuestion + 1} of {questions.length}
                 </span>
               </div>
               
               <div className="w-full bg-muted rounded-full h-2 mb-4">
                 <div 
                   className="bg-primary h-2 rounded-full transition-all"
-                  style={{ width: `${((currentQuestion + 1) / sampleQuestions.length) * 100}%` }}
+                  style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
                 />
               </div>
 
               <h2 className="text-2xl font-bold mb-6">
-                {sampleQuestions[currentQuestion].question}
+                {questions[currentQuestion].question}
               </h2>
 
               <div className="space-y-3">
-                {sampleQuestions[currentQuestion].options.map((option, index) => (
+                {questions[currentQuestion].options.map((option, index) => (
                   <Button
                     key={index}
                     variant="outline"
                     className={`w-full justify-start text-left p-4 h-auto transition-all ${
                       answered
-                        ? index === sampleQuestions[currentQuestion].correct
+                        ? index === questions[currentQuestion].correctAnswer
                           ? "bg-green-500/20 border-green-500"
                           : selectedAnswer === index
                           ? "bg-red-500/20 border-red-500"
@@ -245,7 +265,7 @@ const Games = () => {
               <Award className="w-24 h-24 mx-auto text-primary mb-4" />
               <h2 className="text-3xl font-bold mb-2">Quiz Complete!</h2>
               <p className="text-xl text-muted-foreground mb-6">
-                You scored {score} out of {sampleQuestions.length}
+                You scored {correctAnswers} out of {questions.length}
               </p>
               
               <div className="flex gap-4 justify-center mb-6">
@@ -256,7 +276,7 @@ const Games = () => {
                 </div>
                 <div className="bg-accent/10 px-6 py-4 rounded-lg">
                   <Trophy className="w-8 h-8 text-accent mx-auto mb-2" />
-                  <p className="text-2xl font-bold">{Math.round((score / sampleQuestions.length) * 100)}%</p>
+                  <p className="text-2xl font-bold">{Math.round((correctAnswers / questions.length) * 100)}%</p>
                   <p className="text-sm text-muted-foreground">Accuracy</p>
                 </div>
               </div>

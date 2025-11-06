@@ -17,6 +17,7 @@ import QAGenerator from "./pages/QAGenerator";
 import RevisionKit from "./pages/RevisionKit";
 import VisualsGenerator from "./pages/VisualsGenerator";
 import StudyClub from "./pages/StudyClub";
+import StudyTimer from "./pages/StudyTimer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const App = () => (
           <Route path="/visuals" element={<AppLayout><VisualsGenerator /></AppLayout>} />
           <Route path="/games" element={<AppLayout><Games /></AppLayout>} />
           <Route path="/study-club" element={<AppLayout><StudyClub /></AppLayout>} />
+          <Route path="/study-timer" element={<AppLayout><StudyTimer /></AppLayout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
