@@ -73,9 +73,19 @@ Each question must have exactly 4 options and indicate which option index (0-3) 
     }
 
     const data = await response.json();
-    const content = data.choices[0].message.content;
+    let content = data.choices[0].message.content;
     
     console.log('Raw AI response:', content);
+    
+    // Remove markdown code fences if present
+    content = content.trim();
+    if (content.startsWith('```json')) {
+      content = content.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (content.startsWith('```')) {
+      content = content.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+    
+    console.log('Cleaned content:', content);
     
     // Parse the JSON response
     const quizData = JSON.parse(content);
