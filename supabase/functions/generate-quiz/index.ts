@@ -35,7 +35,16 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a quiz generator. Generate exactly ${numQuestions} multiple choice questions about the given topic. Each question must have exactly 4 options and indicate which option index (0-3) is correct. Return ONLY valid JSON in this exact format, no additional text:
+            content: `You are an expert engineering quiz generator. Generate exactly ${numQuestions} multiple choice questions about the given topic that are appropriate for engineering students (college level, JEE, NEET, or professional engineering). 
+
+Focus on:
+- Technical depth and engineering concepts
+- Application-based questions, not just theory
+- Problem-solving and analytical thinking
+- Real-world engineering scenarios
+- Mix of conceptual understanding and numerical problems
+
+Each question must have exactly 4 options and indicate which option index (0-3) is correct. Return ONLY valid JSON in this exact format, no additional text:
 {
   "questions": [
     {
@@ -49,7 +58,7 @@ serve(async (req) => {
           },
           {
             role: 'user',
-            content: `Generate ${numQuestions} multiple choice quiz questions about: ${topic}. Make them appropriate for students studying this topic. Ensure variety in difficulty and coverage of key concepts.`
+            content: `Generate ${numQuestions} engineering-level multiple choice questions about: ${topic}. Make them challenging and appropriate for college students, JEE/NEET aspirants, or engineering professionals. Include a mix of conceptual, application-based, and problem-solving questions. Ensure variety in difficulty from moderate to advanced level.`
           }
         ],
         temperature: 0.7,
