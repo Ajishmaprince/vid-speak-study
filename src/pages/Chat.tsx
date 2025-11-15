@@ -191,13 +191,15 @@ const Chat = () => {
                       {isSpeaking ? "Stop" : "Listen"}
                     </Button>
                     {message.videoQuery && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(message.videoQuery! + ' educational tutorial')}`, '_blank')}
-                      >
-                        <Video className="w-4 h-4 mr-1" />
-                        Watch Video
+                      <Button size="sm" variant="outline" asChild>
+                        <a
+                          href={`https://www.youtube.com/results?search_query=${encodeURIComponent(message.videoQuery! + ' educational tutorial')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Video className="w-4 h-4 mr-1" />
+                          Watch Video
+                        </a>
                       </Button>
                     )}
                   </div>
