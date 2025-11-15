@@ -4,7 +4,6 @@ import { Card } from "@/components/ui/card";
 import { Upload as UploadIcon, FileText, Loader2, Volume2, VolumeX, Video, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 
 interface SummaryResult {
   summary: string;
@@ -17,7 +16,6 @@ const Upload = () => {
   const [result, setResult] = useState<SummaryResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [showVideo, setShowVideo] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -300,18 +298,6 @@ const Upload = () => {
             </div>
           )}
 
-          {/* Video Modal */}
-          {showVideo && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowVideo(null)}>
-              <div className="bg-card rounded-lg p-6 max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold">Video Tutorial</h3>
-                  <Button variant="ghost" onClick={() => setShowVideo(null)}>Close</Button>
-                </div>
-                <YouTubeEmbed query={showVideo} />
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

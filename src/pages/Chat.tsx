@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import { Send, Mic, MicOff, Volume2, VolumeX, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 
 interface Message {
   role: "user" | "assistant";
@@ -24,7 +23,6 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [showVideo, setShowVideo] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
@@ -196,7 +194,7 @@ const Chat = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setShowVideo(message.videoQuery!)}
+                        onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(message.videoQuery! + ' educational tutorial')}`, '_blank')}
                       >
                         <Video className="w-4 h-4 mr-1" />
                         Watch Video
@@ -246,18 +244,6 @@ const Chat = () => {
           </div>
         </Card>
 
-        {/* Video Modal */}
-        {showVideo && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowVideo(null)}>
-            <div className="bg-card rounded-lg p-6 max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">Video Explanation</h3>
-                <Button variant="ghost" onClick={() => setShowVideo(null)}>Close</Button>
-              </div>
-              <YouTubeEmbed query={showVideo} />
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
