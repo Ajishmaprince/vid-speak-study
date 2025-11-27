@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      flashcards: {
+        Row: {
+          answer: string
+          created_at: string
+          id: string
+          question: string
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          id?: string
+          question: string
+          topic: string
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          id?: string
+          question?: string
+          topic?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      flowcharts: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          mermaid_code: string
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          mermaid_code: string
+          topic: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          mermaid_code?: string
+          topic?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       group_members: {
         Row: {
           group_id: string
