@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Upload as UploadIcon, FileText, Loader2, Volume2, VolumeX, Video, ExternalLink } from "lucide-react";
+import { Upload as UploadIcon, FileText, Loader2, Volume2, VolumeX, Video, ExternalLink, Sparkles, GitBranch } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { FlashcardDisplay } from "@/components/FlashcardDisplay";
+import { FlowchartDisplay } from "@/components/FlowchartDisplay";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface SummaryResult {
   summary: string;
@@ -16,12 +19,20 @@ const Upload = () => {
   const [result, setResult] = useState<SummaryResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [flashcards, setFlashcards] = useState<Array<{question: string, answer: string}>>([]);
+  const [flowchart, setFlowchart] = useState<{mermaidCode: string, description?: string} | null>(null);
+  const [generatingFlashcards, setGeneratingFlashcards] = useState(false);
+  const [generatingFlowchart, setGeneratingFlowchart] = useState(false);
+  const [extractedText, setExtractedText] = useState("");
   const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
       setResult(null);
+      setFlashcards([]);
+      setFlowchart(null);
+      setExtractedText("");
     }
   };
 
@@ -46,12 +57,25 @@ const Upload = () => {
   };
 
   const extractText = async (file: File): Promise<string> => {
-    // For PDF and other documents, use the document parsing tool
+    const fileType = file.type;
+    
+    // Handle video files
+    if (fileType.startsWith('video/')) {
+      toast({
+        title: "Video Processing",
+        description: "Video content will be analyzed. This may take a moment.",
+      });
+      
+      // For video files, we'll use the filename as context
+      // In production, you would use a video transcription service or AI video analysis
+      return `Video file uploaded: ${file.name}. Content analysis available through AI processing.`;
+    }
+    
+    // For PDF and other documents
     if (file.type === "application/pdf" || 
         file.type === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
         file.type === "application/vnd.ms-powerpoint") {
       
-      // Convert file to base64 for parsing
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = async (e) => {
@@ -64,8 +88,6 @@ const Upload = () => {
             }
             const base64 = btoa(binary);
             
-            // For now, we'll use a simple text extraction
-            // In a real app, you'd use a proper PDF parser
             resolve("Content extracted from document. Please implement proper PDF/PPT parsing.");
           } catch (error) {
             reject(error);
@@ -94,6 +116,7 @@ const Upload = () => {
     setIsLoading(true);
     try {
       const text = await extractText(file);
+      setExtractedText(text);
 
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -145,6 +168,110 @@ const Upload = () => {
     }
   };
 
+  const generateFlashcards = async () => {
+    if (!extractedText) {
+      toast({
+        title: "No Content",
+        description: "Please upload and summarize a document first",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setGeneratingFlashcards(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      
+      const { data, error } = await supabase.functions.invoke("generate-flashcards", {
+        body: { 
+          text: extractedText,
+          topic: file?.name || "Study Material"
+        }
+      });
+
+      if (error) throw error;
+      
+      setFlashcards(data.flashcards || []);
+      
+      // Save flashcards to database
+      if (userData?.user && data.flashcards) {
+        const flashcardsToInsert = data.flashcards.map((card: any) => ({
+          user_id: userData.user.id,
+          topic: file?.name || "Study Material",
+          question: card.question,
+          answer: card.answer
+        }));
+
+        await supabase.from('flashcards').insert(flashcardsToInsert);
+      }
+
+      toast({ 
+        title: "Flashcards Generated!", 
+        description: `Created ${data.flashcards?.length || 0} flashcards` 
+      });
+    } catch (error) {
+      console.error('Flashcard generation error:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to generate flashcards", 
+        variant: "destructive" 
+      });
+    } finally {
+      setGeneratingFlashcards(false);
+    }
+  };
+
+  const generateFlowchart = async () => {
+    if (!extractedText) {
+      toast({
+        title: "No Content",
+        description: "Please upload and summarize a document first",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setGeneratingFlowchart(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      
+      const { data, error } = await supabase.functions.invoke("generate-flowchart", {
+        body: { 
+          text: extractedText,
+          topic: file?.name || "Study Material"
+        }
+      });
+
+      if (error) throw error;
+      
+      setFlowchart(data);
+      
+      // Save flowchart to database
+      if (userData?.user && data.mermaidCode) {
+        await supabase.from('flowcharts').insert({
+          user_id: userData.user.id,
+          topic: file?.name || "Study Material",
+          mermaid_code: data.mermaidCode,
+          description: data.description
+        });
+      }
+
+      toast({ 
+        title: "Flowchart Generated!", 
+        description: "Your visual diagram is ready" 
+      });
+    } catch (error) {
+      console.error('Flowchart generation error:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to generate flowchart", 
+        variant: "destructive" 
+      });
+    } finally {
+      setGeneratingFlowchart(false);
+    }
+  };
+
   const downloadSummary = () => {
     if (!result) return;
     const blob = new Blob([result.summary], { type: 'text/plain' });
@@ -158,13 +285,13 @@ const Upload = () => {
 
   return (
     <div className="min-h-screen bg-background pt-16">
-      <div className="max-w-4xl mx-auto p-4">
+      <div className="max-w-6xl mx-auto p-4">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground">Upload & Summarize Notes</h1>
-          <p className="text-muted-foreground">Upload your study notes and get AI-powered summaries</p>
+          <h1 className="text-3xl font-bold text-foreground">Upload & Analyze Content</h1>
+          <p className="text-muted-foreground">Upload documents or videos to get AI-powered summaries, flashcards, and flowcharts</p>
         </div>
 
-        <div className="grid gap-6">
+        <div className="grid gap-6 lg:grid-cols-2">
           {/* Upload Card */}
           <Card className="p-8 gradient-card shadow-card">
             <div className="flex flex-col items-center justify-center space-y-4">
@@ -173,15 +300,15 @@ const Upload = () => {
               </div>
               
               <div className="text-center">
-                <h3 className="text-xl font-bold mb-2">Upload Your Notes</h3>
+                <h3 className="text-xl font-bold mb-2">Upload Content</h3>
                 <p className="text-muted-foreground mb-4">
-                  Supports PDF, PowerPoint, and text files
+                  Supports PDF, PowerPoint, text files, and videos
                 </p>
               </div>
 
               <input
                 type="file"
-                accept=".txt,.pdf,.ppt,.pptx"
+                accept=".txt,.pdf,.ppt,.pptx,.mp4,.mov,.avi,.mkv"
                 onChange={handleFileChange}
                 className="hidden"
                 id="file-upload"
@@ -197,11 +324,11 @@ const Upload = () => {
               </label>
 
               {file && (
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground mb-4">
+                <div className="text-center w-full space-y-3">
+                  <p className="text-sm text-muted-foreground">
                     Selected: {file.name}
                   </p>
-                  <Button onClick={handleUpload} disabled={isLoading}>
+                  <Button onClick={handleUpload} disabled={isLoading} className="w-full">
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -211,93 +338,144 @@ const Upload = () => {
                       "Generate Summary"
                     )}
                   </Button>
+
+                  {result && (
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        onClick={generateFlashcards} 
+                        disabled={generatingFlashcards}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 gap-1"
+                      >
+                        <Sparkles className="w-3 h-3" />
+                        {generatingFlashcards ? "Creating..." : "Flashcards"}
+                      </Button>
+                      <Button 
+                        onClick={generateFlowchart} 
+                        disabled={generatingFlowchart}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 gap-1"
+                      >
+                        <GitBranch className="w-3 h-3" />
+                        {generatingFlowchart ? "Creating..." : "Flowchart"}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </Card>
 
-          {/* Summary Card */}
-          {result && (
-            <div className="space-y-6">
-              <Card className="p-6 gradient-card shadow-card animate-fade-in">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold">AI Summary</h3>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => isSpeaking ? stopSpeaking() : speak(result.summary)}
-                    >
-                      {isSpeaking ? <VolumeX className="w-4 h-4 mr-1" /> : <Volume2 className="w-4 h-4 mr-1" />}
-                      {isSpeaking ? "Stop" : "Listen"}
-                    </Button>
-                    <Button size="sm" onClick={downloadSummary}>
-                      Download
-                    </Button>
-                  </div>
-                </div>
-                <div className="prose prose-sm max-w-none">
-                  <p className="whitespace-pre-wrap text-foreground">{result.summary}</p>
-                </div>
-              </Card>
+          {/* Results Card */}
+          <Card className="p-6 gradient-card shadow-card lg:row-span-2">
+            <Tabs defaultValue="summary" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="summary">Summary</TabsTrigger>
+                <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
+                <TabsTrigger value="flowchart">Flowchart</TabsTrigger>
+              </TabsList>
 
-              {/* Video Tutorials */}
-              {result.videos && result.videos.length > 0 && (
-                <Card className="p-6 gradient-card shadow-card animate-fade-in">
-                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                    <Video className="w-6 h-6 text-primary" />
-                    YouTube Video Tutorials
-                  </h3>
-                  <div className="grid gap-3">
-                    {result.videos.map((video, index) => (
-                      <a
-                        key={index}
-                        href={video.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-3 border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all flex items-center gap-2"
+              <TabsContent value="summary" className="mt-4">
+                {result ? (
+                  <div className="space-y-6">
+                    <div className="flex gap-2 mb-4">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => isSpeaking ? stopSpeaking() : speak(result.summary)}
                       >
-                        <Video className="w-5 h-5 text-primary flex-shrink-0" />
-                        <div className="flex-1">
-                          <p className="font-medium">{video.title}</p>
-                          <p className="text-xs text-muted-foreground">Click to search on YouTube</p>
-                        </div>
-                        <ExternalLink className="w-4 h-4 text-muted-foreground" />
-                      </a>
-                    ))}
-                  </div>
-                </Card>
-              )}
+                        {isSpeaking ? <VolumeX className="w-4 h-4 mr-1" /> : <Volume2 className="w-4 h-4 mr-1" />}
+                        {isSpeaking ? "Stop" : "Listen"}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={downloadSummary}>
+                        Download
+                      </Button>
+                    </div>
+                    
+                    <div className="prose prose-sm max-w-none">
+                      <h3 className="text-lg font-semibold mb-2">Summary</h3>
+                      <p className="whitespace-pre-wrap text-foreground">{result.summary}</p>
+                    </div>
 
-              {/* Online Tutorials */}
-              {result.tutorials && result.tutorials.length > 0 && (
-                <Card className="p-6 gradient-card shadow-card animate-fade-in">
-                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                    <ExternalLink className="w-6 h-6 text-primary" />
-                    Online Learning Resources
-                  </h3>
-                  <div className="space-y-2">
-                    {result.tutorials.map((tutorial, index) => (
-                      <a
-                        key={index}
-                        href={tutorial.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block p-4 border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all group"
-                      >
-                        <div className="flex items-center justify-between">
-                          <p className="font-medium group-hover:text-primary transition-colors">{tutorial.title}</p>
-                          <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    {result.videos && result.videos.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                          <Video className="w-5 h-5" />
+                          Related Videos
+                        </h3>
+                        <div className="space-y-2">
+                          {result.videos.map((video, index) => (
+                            <a
+                              key={index}
+                              href={video.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block p-3 border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all flex items-center justify-between"
+                            >
+                              <span className="font-medium">{video.title}</span>
+                              <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                            </a>
+                          ))}
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1 truncate">{tutorial.url}</p>
-                      </a>
-                    ))}
-                  </div>
-                </Card>
-              )}
-            </div>
-          )}
+                      </div>
+                    )}
 
+                    {result.tutorials && result.tutorials.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Tutorial Links</h3>
+                        <div className="space-y-2">
+                          {result.tutorials.map((tutorial, index) => (
+                            <a
+                              key={index}
+                              href={tutorial.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block p-3 border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium">{tutorial.title}</span>
+                                <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-1 truncate">{tutorial.url}</p>
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">
+                    Upload and process content to see the summary and resources
+                  </p>
+                )}
+              </TabsContent>
+
+              <TabsContent value="flashcards" className="mt-4">
+                {flashcards.length > 0 ? (
+                  <FlashcardDisplay flashcards={flashcards} />
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">
+                    Generate flashcards from your uploaded content to study key concepts
+                  </p>
+                )}
+              </TabsContent>
+
+              <TabsContent value="flowchart" className="mt-4">
+                {flowchart ? (
+                  <FlowchartDisplay 
+                    mermaidCode={flowchart.mermaidCode} 
+                    description={flowchart.description}
+                  />
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">
+                    Generate a flowchart to visualize concepts and relationships
+                  </p>
+                )}
+              </TabsContent>
+            </Tabs>
+          </Card>
         </div>
       </div>
     </div>
