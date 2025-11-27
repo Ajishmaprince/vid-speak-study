@@ -35,23 +35,38 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are an expert at creating clear, educational flowcharts using Mermaid syntax. Create logical, well-structured flowcharts that help students understand concepts.'
+            content: 'You are an expert at creating visual flowcharts and diagrams using Mermaid syntax. Create clear, visual diagrams with proper shapes, arrows, and structure - NOT text explanations.'
           },
           {
             role: 'user',
-            content: `Analyze the following content about "${topic}" and create a comprehensive Mermaid flowchart diagram.
+            content: `Create a VISUAL flowchart diagram for: "${topic}"
 
-The flowchart should:
-- Show the main concept flow and relationships
-- Use clear, concise labels
-- Include decision points where relevant
-- Be structured top-to-bottom (graph TD)
-- Use appropriate shapes (rectangles for processes, diamonds for decisions, etc.)
+CRITICAL RULES:
+- Create an ACTUAL DIAGRAM with nodes and arrows
+- Use boxes, diamonds, circles for different elements
+- Show flow with arrows (-->)
+- Keep labels SHORT (3-5 words max per node)
+- NO long text explanations inside nodes
+- Use proper Mermaid syntax: flowchart TD or graph TD
+- Include at least 8-12 connected nodes
+- Use subgraphs for grouping related concepts if applicable
 
-Content:
+SHAPES TO USE:
+- [Rectangle] for processes/concepts
+- {Diamond} for decisions/questions  
+- ((Circle)) for start/end points
+- ([Stadium]) for important highlights
+
+Content to visualize:
 ${text.substring(0, 8000)}
 
-Return ONLY valid Mermaid code starting with "graph TD" or "flowchart TD".`
+Return ONLY valid Mermaid code. Example format:
+flowchart TD
+    A[Start] --> B{Question?}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+    C --> E[Result]
+    D --> E`
           }
         ],
       }),
