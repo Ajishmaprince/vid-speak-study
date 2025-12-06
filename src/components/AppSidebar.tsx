@@ -35,7 +35,7 @@ export const AppSidebar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border/50 bg-gradient-to-b from-card/95 to-background/95 backdrop-blur-xl">
+    <Sidebar className="border-r border-border/50 bg-gradient-to-b from-card/95 to-background/95 backdrop-blur-xl">
       <SidebarContent className="pt-20">
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground px-4">
