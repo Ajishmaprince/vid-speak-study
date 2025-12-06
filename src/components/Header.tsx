@@ -62,7 +62,6 @@ export const Header = () => {
           variant="ghost" 
           size="icon"
           onClick={toggleSidebar}
-          className="md:hidden"
         >
           <Menu className="w-5 h-5" />
         </Button>
