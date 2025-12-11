@@ -6,6 +6,7 @@ import { LogOut, Menu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useSidebar } from "@/components/ui/sidebar";
+import { ProfileSettings } from "./ProfileSettings";
 
 export const Header = () => {
   const [user, setUser] = useState<any>(null);
@@ -91,6 +92,7 @@ export const Header = () => {
             <p className="text-xs text-muted-foreground">{user.email}</p>
           </div>
         </div>
+        <ProfileSettings user={user} profile={profile} onProfileUpdate={() => fetchProfile(user.id)} />
         <Button 
           onClick={handleLogout} 
           variant="outline" 
