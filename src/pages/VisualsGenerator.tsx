@@ -30,10 +30,20 @@ const VisualsGenerator = () => {
   }, []);
 
   useEffect(() => {
-    if (mermaidRef.current && mermaidCode) {
-      mermaidRef.current.innerHTML = mermaidCode;
-      mermaid.contentLoaded();
-    }
+    const renderDiagram = async () => {
+      if (mermaidRef.current && mermaidCode) {
+        try {
+          const uniqueId = `mermaid-${Date.now()}`;
+          const { svg } = await mermaid.render(uniqueId, mermaidCode);
+          mermaidRef.current.innerHTML = svg;
+        } catch (error) {
+          console.error("Mermaid rendering error:", error);
+          // Show the raw code if rendering fails
+          mermaidRef.current.innerHTML = `<pre class="text-sm text-muted-foreground p-4 bg-muted rounded">${mermaidCode}</pre>`;
+        }
+      }
+    };
+    renderDiagram();
   }, [mermaidCode]);
 
   const generateVisuals = async () => {
