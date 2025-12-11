@@ -163,7 +163,7 @@ const Dashboard = () => {
           <div className="absolute -bottom-4 -right-4 w-72 h-72 bg-accent/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
           <div className="relative z-10">
             <h1 className="text-5xl md:text-6xl font-bold mb-3 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-fade-in">
-              Dashboard
+              My Learning Hub
             </h1>
             <p className="text-muted-foreground text-lg">
               Welcome back{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ''}! Here's your learning overview 🚀
