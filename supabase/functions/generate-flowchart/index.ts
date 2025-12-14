@@ -35,38 +35,38 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are an expert at creating visual flowcharts and diagrams using Mermaid syntax. Create clear, visual diagrams with proper shapes, arrows, and structure - NOT text explanations.'
+            content: 'You are an expert at creating valid Mermaid flowchart syntax. You MUST follow strict syntax rules to avoid parse errors.'
           },
           {
             role: 'user',
-            content: `Create a VISUAL flowchart diagram for: "${topic}"
+            content: `Create a flowchart diagram for: "${topic}"
 
-CRITICAL RULES:
-- Create an ACTUAL DIAGRAM with nodes and arrows
-- Use boxes, diamonds, circles for different elements
-- Show flow with arrows (-->)
-- Keep labels SHORT (3-5 words max per node)
-- NO long text explanations inside nodes
-- Use proper Mermaid syntax: flowchart TD or graph TD
-- Include at least 8-12 connected nodes
-- Use subgraphs for grouping related concepts if applicable
+STRICT SYNTAX RULES - FOLLOW EXACTLY:
+1. Start with: flowchart TD
+2. Use ONLY simple alphanumeric node IDs (A, B, C1, Step1, etc.)
+3. Node labels MUST be simple text - NO special characters like (), [], {}, <>, |, etc.
+4. Use ONLY these node shapes:
+   - A[Simple Text] for rectangles
+   - B{Simple Text} for diamonds
+   - C((Simple Text)) for circles
+5. Arrows: --> or -->|label|
+6. Keep labels under 5 words, letters and numbers only
+7. NO quotes inside labels
+8. NO parentheses () inside labels - spell out instead
 
-SHAPES TO USE:
-- [Rectangle] for processes/concepts
-- {Diamond} for decisions/questions  
-- ((Circle)) for start/end points
-- ([Stadium]) for important highlights
+EXAMPLE OF VALID CODE:
+flowchart TD
+    A[Start Program] --> B{Check Condition}
+    B -->|Yes| C[Execute Action]
+    B -->|No| D[Skip Action]
+    C --> E[Continue]
+    D --> E
+    E --> F((End))
 
 Content to visualize:
-${text.substring(0, 8000)}
+${text.substring(0, 4000)}
 
-Return ONLY valid Mermaid code. Example format:
-flowchart TD
-    A[Start] --> B{Question?}
-    B -->|Yes| C[Action 1]
-    B -->|No| D[Action 2]
-    C --> E[Result]
-    D --> E`
+Return ONLY the mermaid code, nothing else.`
           }
         ],
       }),
@@ -82,12 +82,42 @@ flowchart TD
     let mermaidCode = data.choices[0].message.content;
 
     // Extract mermaid code from markdown code blocks if present
-    const codeBlockMatch = mermaidCode.match(/```(?:mermaid)?\n([\s\S]*?)\n```/);
+    const codeBlockMatch = mermaidCode.match(/```(?:mermaid)?\n?([\s\S]*?)\n?```/);
     if (codeBlockMatch) {
       mermaidCode = codeBlockMatch[1];
     }
 
-    mermaidCode = mermaidCode.trim();
+    // Sanitize the mermaid code to fix common syntax issues
+    mermaidCode = mermaidCode
+      .trim()
+      // Remove any remaining markdown
+      .replace(/```mermaid/g, '')
+      .replace(/```/g, '')
+      // Fix problematic characters in node labels
+      .replace(/\[([^\]]*)\(([^\)]*)\)([^\]]*)\]/g, '[($1 $2 $3)]') // Replace () inside [] 
+      .replace(/\[([^\]]*)\]/g, (_match: string, label: string) => {
+        // Clean up labels - remove special chars
+        const cleanLabel = label
+          .replace(/[()]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        return `[${cleanLabel}]`;
+      })
+      .replace(/\{([^\}]*)\}/g, (_match: string, label: string) => {
+        const cleanLabel = label
+          .replace(/[()]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        return `{${cleanLabel}}`;
+      })
+      .replace(/\(\(([^\)]*)\)\)/g, (_match: string, label: string) => {
+        const cleanLabel = label
+          .replace(/[()]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        return `((${cleanLabel}))`;
+      })
+      .trim();
 
     console.log('Generated flowchart successfully');
 
