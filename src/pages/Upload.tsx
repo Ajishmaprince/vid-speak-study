@@ -7,6 +7,10 @@ import { useToast } from "@/hooks/use-toast";
 import { FlashcardDisplay } from "@/components/FlashcardDisplay";
 import { FlowchartDisplay } from "@/components/FlowchartDisplay";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Set up PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 interface SummaryResult {
   summary: string;
@@ -56,8 +60,67 @@ const Upload = () => {
     }
   };
 
+  const extractPdfText = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+    
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      fullText += pageText + '\n\n';
+    }
+    
+    return fullText.trim();
+  };
+
+  const extractPptText = async (file: File): Promise<string> => {
+    // PPT/PPTX files are ZIP archives with XML content
+    // We'll use JSZip to extract text from the slides
+    const arrayBuffer = await file.arrayBuffer();
+    
+    try {
+      // Dynamic import JSZip
+      const JSZip = (await import('jszip')).default;
+      const zip = await JSZip.loadAsync(arrayBuffer);
+      
+      let fullText = '';
+      const slideFiles = Object.keys(zip.files)
+        .filter(name => name.match(/ppt\/slides\/slide\d+\.xml/))
+        .sort((a, b) => {
+          const numA = parseInt(a.match(/slide(\d+)/)?.[1] || '0');
+          const numB = parseInt(b.match(/slide(\d+)/)?.[1] || '0');
+          return numA - numB;
+        });
+      
+      for (const slidePath of slideFiles) {
+        const slideContent = await zip.file(slidePath)?.async('string');
+        if (slideContent) {
+          // Extract text from XML - look for <a:t> tags which contain text
+          const textMatches = slideContent.match(/<a:t>([^<]*)<\/a:t>/g);
+          if (textMatches) {
+            const slideText = textMatches
+              .map(match => match.replace(/<\/?a:t>/g, ''))
+              .filter(text => text.trim())
+              .join(' ');
+            fullText += slideText + '\n\n';
+          }
+        }
+      }
+      
+      return fullText.trim() || `PowerPoint presentation: ${file.name}. Unable to extract detailed text content.`;
+    } catch (error) {
+      console.error('Error extracting PPT text:', error);
+      return `PowerPoint presentation: ${file.name}. Text extraction encountered an error.`;
+    }
+  };
+
   const extractText = async (file: File): Promise<string> => {
     const fileType = file.type;
+    const fileName = file.name.toLowerCase();
     
     // Handle video files
     if (fileType.startsWith('video/')) {
@@ -65,37 +128,27 @@ const Upload = () => {
         title: "Video Processing",
         description: "Video content will be analyzed. This may take a moment.",
       });
-      
-      // For video files, we'll use the filename as context
-      // In production, you would use a video transcription service or AI video analysis
       return `Video file uploaded: ${file.name}. Content analysis available through AI processing.`;
     }
     
-    // For PDF and other documents
-    if (file.type === "application/pdf" || 
-        file.type === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
-        file.type === "application/vnd.ms-powerpoint") {
-      
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-          try {
-            const arrayBuffer = e.target?.result as ArrayBuffer;
-            const uint8Array = new Uint8Array(arrayBuffer);
-            let binary = '';
-            for (let i = 0; i < uint8Array.byteLength; i++) {
-              binary += String.fromCharCode(uint8Array[i]);
-            }
-            const base64 = btoa(binary);
-            
-            resolve("Content extracted from document. Please implement proper PDF/PPT parsing.");
-          } catch (error) {
-            reject(error);
-          }
-        };
-        reader.onerror = reject;
-        reader.readAsArrayBuffer(file);
+    // Handle PDF files
+    if (fileType === "application/pdf" || fileName.endsWith('.pdf')) {
+      toast({
+        title: "Extracting PDF",
+        description: "Reading PDF content...",
       });
+      return await extractPdfText(file);
+    }
+    
+    // Handle PowerPoint files
+    if (fileType === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
+        fileType === "application/vnd.ms-powerpoint" ||
+        fileName.endsWith('.pptx') || fileName.endsWith('.ppt')) {
+      toast({
+        title: "Extracting PowerPoint",
+        description: "Reading slide content...",
+      });
+      return await extractPptText(file);
     }
     
     // For text files
